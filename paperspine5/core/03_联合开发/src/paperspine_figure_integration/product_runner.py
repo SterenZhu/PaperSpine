@@ -24,6 +24,7 @@ from typing import Any, Callable
 from xml.etree import ElementTree
 
 from .contracts import ContractError, load_json
+from .filesystem_paths import native_path, resolve_path
 from .figure_correction import (
     FigureCorrectionError,
     FigureCorrectionService,
@@ -3909,15 +3910,15 @@ class ProductRunner:
                 / ".staging"
                 / hashlib.sha256(envelope["command_id"].encode("utf-8")).hexdigest()
             )
-            shutil.rmtree(staging, ignore_errors=True)
+            shutil.rmtree(native_path(staging), ignore_errors=True)
             try:
-                staging.parent.rmdir()
+                native_path(staging.parent).rmdir()
             except OSError:
                 pass
 
     def _cleanup_prepared(self, task_id: str, prepared: dict[str, Any]) -> None:
         task = self.kernel.get_task(task_id)
-        run_root = Path(task["run_root"]).resolve()
+        run_root = resolve_path(task["run_root"])
         referenced_receipts: set[Path] = set()
         referenced_objects: set[Path] = set()
         for view in self.kernel.list_artifacts(task_id):
@@ -3925,7 +3926,7 @@ class ProductRunner:
             path = Path(receipt["path"])
             if not path.is_absolute():
                 path = run_root / path
-            referenced_receipts.add(path.resolve())
+            referenced_receipts.add(resolve_path(path))
             payload = view.get("payload")
             if receipt.get("artifact_type") == "materials.source-ledger" and isinstance(
                 payload, dict
@@ -3934,18 +3935,18 @@ class ProductRunner:
                     object_path = Path(str(entry.get("object_path", "")))
                     if not object_path.is_absolute():
                         object_path = run_root / object_path
-                    referenced_objects.add(object_path.resolve())
+                    referenced_objects.add(resolve_path(object_path))
         figure_evidence = prepared.get("figure_evidence")
         if isinstance(figure_evidence, dict):
             for raw_path in figure_evidence.get("published_paths", []):
-                candidate = Path(str(raw_path)).resolve()
+                candidate = resolve_path(str(raw_path))
                 if (
                     _is_relative_to(candidate, run_root)
                     and candidate not in referenced_receipts
                     and candidate not in referenced_objects
-                    and candidate.is_file()
+                    and native_path(candidate).is_file()
                 ):
-                    candidate.unlink()
+                    native_path(candidate).unlink()
         candidate_objects: set[Path] = set()
         for receipt in prepared.values():
             if not isinstance(receipt, dict):
@@ -3956,30 +3957,30 @@ class ProductRunner:
             path = Path(raw_path)
             if not path.is_absolute():
                 path = run_root / path
-            path = path.resolve()
+            path = resolve_path(path)
             if (
-                path.is_file()
+                native_path(path).is_file()
                 and receipt.get("artifact_type") == "materials.source-ledger"
             ):
                 try:
-                    payload = json.loads(path.read_text(encoding="utf-8-sig"))
+                    payload = json.loads(native_path(path).read_text(encoding="utf-8-sig"))
                 except (OSError, UnicodeError, json.JSONDecodeError):
                     payload = {}
                 for entry in payload.get("entries", []):
                     object_path = Path(str(entry.get("object_path", "")))
                     if not object_path.is_absolute():
                         object_path = run_root / object_path
-                    candidate_objects.add(object_path.resolve())
+                    candidate_objects.add(resolve_path(object_path))
             if path not in referenced_receipts and _is_relative_to(path, run_root):
-                path.unlink(missing_ok=True)
+                native_path(path).unlink(missing_ok=True)
         for object_path in candidate_objects - referenced_objects:
             if _is_relative_to(object_path, run_root):
-                object_path.unlink(missing_ok=True)
+                native_path(object_path).unlink(missing_ok=True)
 
     def reconcile_orphans(self, task_id: str, *, apply: bool = False) -> dict[str, Any]:
         """Report or remove uncommitted runner artifacts/CAS objects; committed bytes are preserved."""
         task = self.kernel.get_task(task_id)
-        run_root = Path(task["run_root"]).resolve()
+        run_root = resolve_path(task["run_root"])
         referenced_receipts: set[Path] = set()
         referenced_objects: set[Path] = set()
         for view in self.kernel.list_artifacts(task_id):
@@ -3987,38 +3988,38 @@ class ProductRunner:
             path = Path(receipt["path"])
             if not path.is_absolute():
                 path = run_root / path
-            referenced_receipts.add(path.resolve())
+            referenced_receipts.add(resolve_path(path))
             if receipt.get("artifact_type") == "materials.source-ledger":
                 payload = view.get("payload") or {}
                 for entry in payload.get("entries", []):
                     object_path = Path(entry["object_path"])
                     if not object_path.is_absolute():
                         object_path = run_root / object_path
-                    referenced_objects.add(object_path.resolve())
+                    referenced_objects.add(resolve_path(object_path))
         artifacts_root = run_root / "runner" / "artifacts"
         objects_root = run_root / "runner" / "materials" / "objects"
         orphan_receipts = (
             sorted(
-                path.resolve()
-                for path in artifacts_root.rglob("*.json")
-                if path.resolve() not in referenced_receipts
+                resolve_path(path)
+                for path in native_path(artifacts_root).rglob("*.json")
+                if resolve_path(path) not in referenced_receipts
             )
-            if artifacts_root.exists()
+            if native_path(artifacts_root).exists()
             else []
         )
         orphan_objects = (
             sorted(
-                path.resolve()
-                for path in objects_root.rglob("*")
-                if path.is_file() and path.resolve() not in referenced_objects
+                resolve_path(path)
+                for path in native_path(objects_root).rglob("*")
+                if native_path(path).is_file() and resolve_path(path) not in referenced_objects
             )
-            if objects_root.exists()
+            if native_path(objects_root).exists()
             else []
         )
         if apply:
             for path in [*orphan_receipts, *orphan_objects]:
-                path.unlink(missing_ok=True)
-            shutil.rmtree(run_root / "runner" / ".staging", ignore_errors=True)
+                native_path(path).unlink(missing_ok=True)
+            shutil.rmtree(native_path(run_root / "runner" / ".staging"), ignore_errors=True)
         return {
             "task_id": task_id,
             "apply": apply,
@@ -6621,11 +6622,11 @@ class ProductRunner:
                               and item['relative_path'] == relative_path), None)
                 if saved is None or len(entries) >= self.max_files:
                     return
-                run_root = Path(task['run_root']).resolve()
+                run_root = resolve_path(task['run_root'])
                 try:
-                    cached = (run_root / saved['object_path']).resolve()
-                    if (not _is_relative_to(cached, run_root) or not cached.is_file()
-                            or cached.stat().st_size != saved['size_bytes']
+                    cached = resolve_path(run_root / saved['object_path'])
+                    if (not _is_relative_to(cached, run_root) or not native_path(cached).is_file()
+                            or native_path(cached).stat().st_size != saved['size_bytes']
                             or total_size + saved['size_bytes'] > self.max_total_bytes
                             or self._file_digest(cached) != saved['sha256']):
                         return
@@ -6640,9 +6641,9 @@ class ProductRunner:
                                + relative_path + '. It has not been reread from the source.'})
 
             for directory, dirnames, filenames in os.walk(
-                root, topdown=True, onerror=on_error, followlinks=False
+                native_path(root), topdown=True, onerror=on_error, followlinks=False
             ):
-                directory_path = Path(directory)
+                directory_path = root / Path(directory).relative_to(native_path(root))
                 if _is_link_or_reparse(directory_path):
                     scan_issues.append(
                         {
@@ -6662,7 +6663,7 @@ class ProductRunner:
                     relative_dir = candidate.relative_to(root).as_posix()
                     if selected is not None and not any(path.startswith(relative_dir + '/') for path in selected):
                         continue
-                    if partial and selected is None and (dirname in ignored or candidate.resolve() == Path(task['run_root']).resolve()):
+                    if partial and selected is None and (dirname in ignored or resolve_path(candidate) == resolve_path(task['run_root'])):
                         continue
                     if _is_link_or_reparse(candidate):
                         scan_issues.append(
@@ -6691,8 +6692,8 @@ class ProductRunner:
                         )
                         continue
                     try:
-                        resolved = source.resolve()
-                        if partial and _is_relative_to(resolved, root) and not resolved.is_file():
+                        resolved = resolve_path(source)
+                        if partial and _is_relative_to(resolved, root) and not native_path(resolved).is_file():
                             on_error(OSError('Selected material is not a readable file: ' + str(source)))
                             continue
                     except OSError as exc:
@@ -6701,7 +6702,7 @@ class ProductRunner:
                         on_error(exc)
                         retain_cached(relative.as_posix())
                         continue
-                    if not _is_relative_to(resolved, root) or not resolved.is_file():
+                    if not _is_relative_to(resolved, root) or not native_path(resolved).is_file():
                         scan_issues.append(
                             {
                                 "code": "materials.path_escape",
@@ -6721,7 +6722,7 @@ class ProductRunner:
                         stopped = True
                         break
                     try:
-                        before = resolved.stat()
+                        before = native_path(resolved).stat()
                     except OSError as exc:
                         on_error(exc)
                         retain_cached(relative.as_posix())
@@ -6746,7 +6747,7 @@ class ProductRunner:
                             command_id=command_id,
                             source_key=f"{grant['grant_id']}:{relative.as_posix()}",
                         )
-                        after = resolved.stat()
+                        after = native_path(resolved).stat()
                     except OSError as exc:
                         on_error(exc)
                         retain_cached(relative.as_posix())
@@ -6864,7 +6865,7 @@ class ProductRunner:
         command_id: str,
         source_key: str,
     ) -> tuple[str, int, str]:
-        run_root = Path(task["run_root"]).resolve()
+        run_root = resolve_path(task["run_root"])
         stage_root = (
             run_root
             / "runner"
@@ -6872,54 +6873,58 @@ class ProductRunner:
             / hashlib.sha256(command_id.encode("utf-8")).hexdigest()
             / "objects"
         )
-        stage_root.mkdir(parents=True, exist_ok=True)
+        native_path(stage_root).mkdir(parents=True, exist_ok=True)
         staging = stage_root / (
             hashlib.sha256(source_key.encode("utf-8")).hexdigest()
             + "."
             + secrets.token_hex(8)
             + ".pending"
         )
-        digest = hashlib.sha256()
-        size = 0
-        with source.open("rb") as input_stream, staging.open("wb") as output_stream:
-            for chunk in iter(lambda: input_stream.read(1024 * 1024), b""):
-                digest.update(chunk)
-                size += len(chunk)
-                output_stream.write(chunk)
-            output_stream.flush()
-            os.fsync(output_stream.fileno())
-        hexdigest = digest.hexdigest()
-        relative = Path("runner") / "materials" / "objects" / hexdigest[:2] / hexdigest
-        if relative.is_absolute() or ".." in relative.parts:
-            raise ContractError("material object path escapes the active run root")
-        destination = run_root / relative
-        destination.parent.mkdir(parents=True, exist_ok=True)
-        if destination.exists():
-            if (
-                destination.stat().st_size != size
-                or self._file_digest(destination) != hexdigest
-            ):
-                raise ContractError(
-                    "content-addressed material object has conflicting bytes"
-                )
-            staging.unlink(missing_ok=True)
-        else:
-            try:
-                os.replace(staging, destination)
-            except OSError:
+        try:
+            digest = hashlib.sha256()
+            size = 0
+            with native_path(source).open("rb") as input_stream, native_path(staging).open("wb") as output_stream:
+                for chunk in iter(lambda: input_stream.read(1024 * 1024), b""):
+                    digest.update(chunk)
+                    size += len(chunk)
+                    output_stream.write(chunk)
+                output_stream.flush()
+                os.fsync(output_stream.fileno())
+            hexdigest = digest.hexdigest()
+            relative = Path("runner") / "materials" / "objects" / hexdigest[:2] / hexdigest
+            if relative.is_absolute() or ".." in relative.parts:
+                raise ContractError("material object path escapes the active run root")
+            destination = run_root / relative
+            native_path(destination.parent).mkdir(parents=True, exist_ok=True)
+            if native_path(destination).exists():
                 if (
-                    not destination.is_file()
-                    or destination.stat().st_size != size
+                    native_path(destination).stat().st_size != size
                     or self._file_digest(destination) != hexdigest
                 ):
-                    raise
-                staging.unlink(missing_ok=True)
-        return hexdigest, size, relative.as_posix()
+                    raise ContractError(
+                        "content-addressed material object has conflicting bytes"
+                    )
+                native_path(staging).unlink(missing_ok=True)
+            else:
+                try:
+                    os.replace(native_path(staging), native_path(destination))
+                except OSError:
+                    if (
+                        not native_path(destination).is_file()
+                        or native_path(destination).stat().st_size != size
+                        or self._file_digest(destination) != hexdigest
+                    ):
+                        raise
+                    native_path(staging).unlink(missing_ok=True)
+            return hexdigest, size, relative.as_posix()
+        finally:
+            native_path(staging).unlink(missing_ok=True)
+
 
     @staticmethod
     def _file_digest(path: Path) -> str:
         digest = hashlib.sha256()
-        with path.open("rb") as stream:
+        with native_path(path).open("rb") as stream:
             for chunk in iter(lambda: stream.read(1024 * 1024), b""):
                 digest.update(chunk)
         return digest.hexdigest()
@@ -6962,9 +6967,9 @@ class ProductRunner:
         live_entries: dict[tuple[str, str], tuple[str, int]] = {}
         for grant_id, root in live_roots.items():
             for directory, dirnames, filenames in os.walk(
-                root, topdown=True, followlinks=False
+                native_path(root), topdown=True, followlinks=False
             ):
-                directory_path = Path(directory)
+                directory_path = root / Path(directory).relative_to(native_path(root))
                 if _is_link_or_reparse(directory_path):
                     raise ContractError(
                         "material inventory contains a linked/reparse directory"
@@ -6976,15 +6981,15 @@ class ProductRunner:
                 ]
                 for filename in sorted(filenames):
                     source = directory_path / filename
-                    if _is_link_or_reparse(source) or not source.is_file():
+                    if _is_link_or_reparse(source) or not native_path(source).is_file():
                         continue
                     relative = source.relative_to(root).as_posix()
                     live_entries[(grant_id, relative)] = (
                         self._file_digest(source),
-                        source.stat().st_size,
+                        native_path(source).stat().st_size,
                     )
         asserted_entries: set[tuple[str, str]] = set()
-        run_root = Path(task["run_root"]).resolve()
+        run_root = resolve_path(task["run_root"])
         grant_digests: dict[str, str] = {}
         for grant_view in ledger["grants"]:
             grant_id = grant_view["grant_id"]
@@ -7007,7 +7012,7 @@ class ProductRunner:
                         raise ContractError(
                             "material inventory source traverses a link/reparse point"
                         )
-                if not source.is_file() or not _is_relative_to(source.resolve(), root):
+                if not native_path(source).is_file() or not _is_relative_to(resolve_path(source), root):
                     raise ContractError(
                         "material inventory source is missing or outside its grant"
                     )
@@ -7031,11 +7036,11 @@ class ProductRunner:
                     raise ContractError(
                         "material inventory source/object identity is not canonical"
                     )
-                object_path = (run_root / item["object_path"]).resolve()
+                object_path = resolve_path(run_root / item["object_path"])
                 if (
                     not _is_relative_to(object_path, run_root)
                     or _is_link_or_reparse(object_path)
-                    or not object_path.is_file()
+                    or not native_path(object_path).is_file()
                 ):
                     raise ContractError(
                         "material inventory object is missing or outside run_root"
@@ -7047,7 +7052,7 @@ class ProductRunner:
                     live_digest != item["sha256"]
                     or live_size != item["size_bytes"]
                     or self._file_digest(object_path) != item["sha256"]
-                    or object_path.stat().st_size != item["size_bytes"]
+                    or native_path(object_path).stat().st_size != item["size_bytes"]
                 ):
                     raise ContractError(
                         "material inventory bytes are stale or do not match receipts"

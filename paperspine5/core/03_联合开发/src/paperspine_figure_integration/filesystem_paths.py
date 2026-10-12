@@ -20,3 +20,18 @@ def native_path(path: str | Path) -> Path:
     if raw.startswith("\\\\"):
         return Path("\\\\?\\UNC\\" + raw[2:])
     return Path("\\\\?\\" + raw)
+
+
+def resolve_path(path: str | Path, *, strict: bool = False) -> Path:
+    """Resolve with native I/O; return a logical path for checks and receipts."""
+    value = Path(path).expanduser()
+    if not value.is_absolute():
+        value = value.absolute()
+    resolved = native_path(value).resolve(strict=strict)
+    raw = str(resolved)
+    if os.name == "nt":
+        if raw.startswith("\\\\?\\UNC\\"):
+            return Path("\\\\" + raw[8:])
+        if raw.startswith("\\\\?\\"):
+            return Path(raw[4:])
+    return resolved

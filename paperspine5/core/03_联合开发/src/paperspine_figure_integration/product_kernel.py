@@ -20,7 +20,7 @@ from pathlib import Path
 from typing import Any, Callable, Iterator
 from uuid import uuid4
 
-from .filesystem_paths import native_path
+from .filesystem_paths import native_path, resolve_path
 from .contracts import ContractError, load_json, write_json_atomic
 from .product_contracts import (
     PRODUCT_SCHEMA_VERSION,
@@ -100,6 +100,7 @@ def _is_relative_to(path: Path, root: Path) -> bool:
 
 def _is_link_or_reparse(path: Path) -> bool:
     """Detect POSIX links and Windows junction/reparse points without following them."""
+    path = native_path(path)
     try:
         if path.is_symlink():
             return True
@@ -113,7 +114,7 @@ def _is_link_or_reparse(path: Path) -> bool:
 
 
 def _filesystem_identity(path: Path) -> dict[str, int]:
-    status = os.stat(path, follow_symlinks=False)
+    status = os.stat(native_path(path), follow_symlinks=False)
     return {
         "st_dev": int(status.st_dev),
         "st_ino": int(status.st_ino),
@@ -130,10 +131,10 @@ def _resolve_material_root(value: str | Path) -> tuple[Path, Path, dict[str, int
     if _is_link_or_reparse(supplied):
         raise ContractError(f"materials root cannot be a symlink, junction, or reparse point: {supplied}")
     try:
-        canonical = supplied.resolve(strict=True)
+        canonical = resolve_path(supplied, strict=True)
     except OSError as exc:
         raise ContractError(f"materials root does not exist: {supplied}") from exc
-    if not canonical.is_dir():
+    if not native_path(canonical).is_dir():
         raise ContractError(f"materials root is not a directory: {canonical}")
     return supplied, canonical, _filesystem_identity(supplied)
 
@@ -150,11 +151,11 @@ def _validate_grant_root(grant: dict[str, Any]) -> Path:
     if not root.is_absolute() or _is_link_or_reparse(root):
         raise ContractError("material capability root drifted or became a link/reparse point; regrant required")
     try:
-        current_target = root.resolve(strict=True)
+        current_target = resolve_path(root, strict=True)
     except OSError as exc:
         raise ContractError("material capability root is unavailable; regrant required") from exc
     canonical = Path(canonical_text)
-    if current_target != canonical or not canonical.is_dir():
+    if current_target != canonical or not native_path(canonical).is_dir():
         raise ContractError("material capability canonical target drifted; regrant required")
     if _filesystem_identity(root) != stored_identity:
         raise ContractError("material capability filesystem identity drifted; regrant required")
@@ -1147,10 +1148,10 @@ class ProductKernel:
         if grant is None or grant.get("revoked_at") is not None or grant.get("read_only") is not True:
             raise ContractError("material capability grant is missing, revoked, or not read-only")
         root = _validate_grant_root(grant)
-        resolved = (root / value).resolve()
+        resolved = resolve_path(root / value)
         if not _is_relative_to(resolved, root):
             raise ContractError("material path escapes the granted root")
-        if not resolved.exists() or _is_link_or_reparse(resolved):
+        if not native_path(resolved).exists() or _is_link_or_reparse(resolved):
             raise ContractError(f"material path does not exist: {resolved}")
         return resolved
 
