@@ -14,6 +14,32 @@ PaperSpine5 是一个覆盖论文全流程的 AI Skill。你提供研究方向�
 
 从正文到数据图、机制示意图和方法框架图，在同一个任务中完成。通过 `paper-spine` 启动，在网页中选择方案、预览图文、提出修改意见并下载成果。研究材料优先保存在本地，论点、引用和图表均以真实资料与证据为依据。
 
+## 本 fork 的 Claude Skill 修复记录
+
+本 fork 面向在 Claude 中使用 `paper-spine` Skill 的场景，Skill 安装目录为
+`~/.claude/skills/paper-spine`。以下记录来自 Windows 上的实际使用问题。
+
+| 问题 | 原因与解决办法 |
+| --- | --- |
+| `launch --no-open` 报“Keep the local profile separate from installed product files” | 官方安装器将程序放在 profile 下，启动检查却拒绝这个布局。修复为允许该布局，仍拒绝 profile 与程序目录相同或位于程序目录内。 |
+| 材料登记报 `materials.read_failed`，提示文件不存在 | 深层暂存路径超过 Windows 默认长度限制。材料扫描、复制、校验、替换和清理接入已有扩展路径支持，补齐长路径解析；保留原存储布局与完整 SHA-256，无需改系统长路径设置。 |
+| 外部模板目录已生成稿件、图件和 PDF，工作台仍停在研究阶段 | 保存文件不会自动更新工作台。新增 `host bind-output` 记住同一任务的外部写作目录，`host checkpoint` 按文件清单发布成果、提交真实阶段的里程碑并读回确认；支持复用未变文件和失败后恢复。 |
+
+第三项的命令、JSON 清单及恢复方式见
+[工作流说明](src/skill/references/product-v1-workflow.md#external-writing-directories-and-one-command-checkpoints)。
+每个实际工作段完成、恢复会话和最终回复前，Claude 应按 Skill 要求同步成果与进度。
+修复使用独立测试材料和任务验证，不需要重新登记原论文的 55 个材料文件。
+
+### 自用版本与后续更新
+
+这些修复已进入 fork 源码和 Claude Skill 分发文件。已安装的 Skill 与其 Web 核心仍需一起更新，
+才能使用全部修复；仅拉取仓库不会更新本机安装。当前下载链接和默认更新清单仍指向官方套件，
+它们不包含本 fork 的自用改动，后续官方自动更新也可能覆盖本地修复。
+
+后续维护应合并上游更新、运行相关回归测试，并构建包含修复的自用完整套件。
+发布自用更新清单后，可用更新器的 `--preflight --source <自用更新清单>` 指向该渠道；
+渠道建立前，按更新器设置明确关闭自动更新。这里记录更新策略，尚未切换本机更新渠道或重装 Skill。
+
 ## 下载
 
 - Windows x64 套件：约 26.5 MB。
