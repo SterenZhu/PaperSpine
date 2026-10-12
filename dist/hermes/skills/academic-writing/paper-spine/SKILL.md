@@ -130,6 +130,17 @@ and downstream use; repair the source at the defect location and compare
 outputs. After two unchanged attempts, change tactic, not notes/status/hash.
 Reuse valid saved work.
 
+When the user writes in an external template/output directory, bind that
+explicit directory to this same profile/task with `host bind-output`.
+On resume read `writing_directory` from `host snapshot`; it is a host output
+preference, separate from the task workspace and research material roots.
+At each real segment boundary and before the final reply, use
+`host checkpoint --manifest <json>` with the actual stage, factual summary and
+explicit completed files. It publishes, commits the milestone and reads back
+the same task. Reuse unchanged outputs. Report a failed sync and resume it
+before claiming workbench progression; do not silently fall back to files only.
+See [product-v1-workflow.md](references/product-v1-workflow.md) for the manifest.
+
 **Mandatory before the next work segment or stage:** verify that the previous
 segment's real results have reached the same task's workbench. Read the current
 snapshot; publish any completed deliverable that the user should see; call

@@ -187,6 +187,67 @@ do not count the intervention as an unaided user action or inject a selection.
 
 ## Same-task calls
 
+### External writing directories and one-command checkpoints
+
+When the user names an existing external paper/template output folder, bind it
+once to the same task/profile:
+
+```text
+python scripts/paperspine5_web.py host bind-output --profile-root "<same-profile>" --task-id "<same-task-id>" --writing-dir "<external-template-directory>"
+python scripts/paperspine5_web.py host checkpoint --profile-root "<same-profile>" --task-id "<same-task-id>" --manifest "<checkpoint.json>"
+```
+
+The binding is a local host preference under the profile, scoped to the task
+and its data/database identity. Binding alone does not change task configuration
+or stage, scan materials, or move files. `host snapshot` also returns the saved
+`writing_directory`, including with `--summary`. A new computer/profile needs
+an explicit binding; never infer one from a recent folder.
+
+A checkpoint manifest names files relative to that writing directory:
+
+```json
+{
+  "stage": "draft",
+  "summary": "Completed the manuscript draft and compiled its PDF.",
+  "files": [
+    {"path": "main.tex", "artifact_type": "manuscript_source"},
+    {"path": "references.bib", "artifact_type": "bibliography"},
+    {"path": "figures/overview.png", "artifact_type": "figure"},
+    {"path": "main.pdf", "artifact_type": "pdf"}
+  ]
+}
+```
+
+`--manifest -` reads JSON from stdin. Supply the real stage and summary; a PDF
+does not establish review or delivery completion. File types may be
+`research_note`, `evidence_graph`, `manuscript_source`, `figure`, `pdf`,
+`docx`, `tex`, `bibliography` or `review_packet`. Optional `document_id`
+distinguishes separate manuscript documents; otherwise the existing main
+document semantics apply. Delivery packages use the existing checked delivery
+workflow, not this generic file checkpoint.
+
+The helper validates all named paths before writing, authorizes the output
+folder through the existing read-only grant interface when needed (selecting
+only the listed files for its initial inventory), and publishes sources/figures
+before renders. It reuses the committed grant on later checkpoints rather than
+rescanning research inputs on every output update. The core still validates
+source permissions and actual file bytes. The caller must already have the
+user's authorization for this directory and the saved scientific scope.
+
+It then commits the milestone with the actual published IDs and reads back the
+stage, summary, files and pending choices. Identical checkpoints do not add new
+publications or milestones; changed files publish new artifact versions.
+External originals stay in their writing directory; the workbench displays
+published snapshots, so later edits require another checkpoint.
+
+On failure it reports completed artifact IDs and exits nonzero. The profile
+keeps the exact in-flight command so an explicit rerun can replay its command ID
+after a lost acknowledgement. There is no automatic retry. Version conflicts
+stop the invocation; after reading current task facts, rerun explicitly. Use
+checkpoints at real segment boundaries, on resume and before the final reply,
+not after every keystroke. Never edit the task event database or bridge JSON to
+move its progress indicator.
+
 Start with `paperspine_get_task`, read actual configuration/material roots,
 `progress.current_milestone` when present, pending choices and feedback.
 Use `paperspine_list_task_events` to recover context. Reading a task does not

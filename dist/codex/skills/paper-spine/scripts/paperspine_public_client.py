@@ -496,7 +496,7 @@ def _task_summary(payload: dict[str, Any]) -> dict[str, Any]:
     pending = [d for d in decisions if d.get("status") == "pending" and not d.get("stale")]
     summary = {key: payload[key] for key in (
         "task_id", "task_version", "stage", "effective_stage", "stage_source", "status", "summary",
-        "workspace_root", "configuration", "configuration_source", "configuration_stale", "skill_bridge",
+        "workspace_root", "writing_directory", "configuration", "configuration_source", "configuration_stale", "skill_bridge",
         "created_at", "updated_at"
     ) if key in payload}
     # The bridge includes discovered candidates for Web. A host summary only
@@ -566,6 +566,9 @@ def _run_public_job(args: argparse.Namespace, root: Path, job: dict[str, Any]) -
 
 
 def call(args: argparse.Namespace, root: Path) -> int:
+    if args.host_command in ("bind-output", "checkpoint"):
+        import paperspine_checkpoint
+        return paperspine_checkpoint.run(args, root, sys.modules[__name__])
     if args.host_command == "methods":
         from paperspine_methods import validate_paging
         args.include_text = getattr(args, "include_text", False) or getattr(args, "format", "json") == "text"
@@ -613,6 +616,11 @@ def call(args: argparse.Namespace, root: Path) -> int:
         if (args.host_command in ("snapshot", "methods") and result.returncode == 0
                 and isinstance(payload, dict) and not payload.get("error")):
             guidance = _method_guidance(payload, args, binding)
+            if args.host_command == "snapshot" and selected_profile(args):
+                from paperspine_checkpoint import output_directory
+                directory = output_directory(selected_profile(args), args.task_id, binding)
+                if directory:
+                    payload = {**payload, "writing_directory": directory}
             if args.host_command == "methods":
                 # Keep the actual saved scope, but do not bury original method text
                 # behind a task's potentially huge artifact/history projections.

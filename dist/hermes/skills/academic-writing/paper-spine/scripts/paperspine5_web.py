@@ -90,10 +90,12 @@ def parse_args() -> argparse.Namespace:
         ("methods", "read applicable original Skill methods for the same public task (advisory)"),
         ("call", "call a public MCP tool with its actual argument object"),
         ("wait", "stay attached until a real task version changes; interrupt to cancel"),
+        ("bind-output", "remember this task's external writing directory"),
+        ("checkpoint", "publish completed outputs and record/read back the real milestone"),
     ):
         command = host_commands.add_parser(name, help=help_text)
         command.add_argument("--project-root")
-        command.add_argument("--profile-root", required=name == "wait",
+        command.add_argument("--profile-root", required=name in ("wait", "bind-output", "checkpoint"),
                              help="existing profile with data/product-config.json")
         command.add_argument("--output-dir", "--user-data-root", dest="output_dir",
                              help="same user-data root as the Web service")
@@ -111,7 +113,11 @@ def parse_args() -> argparse.Namespace:
             command.add_argument("--tool", help="one exact public tool schema")
             command.add_argument("--task-id", help="compatibility context only; inventory is process-wide, with no task read or filtering")
         else:
-            command.add_argument("--task-id", required=name in ("snapshot", "methods", "wait"))
+            command.add_argument("--task-id", required=name in ("snapshot", "methods", "wait", "bind-output", "checkpoint"))
+        if name == "bind-output":
+            command.add_argument("--writing-dir", required=True, help="existing external paper output directory")
+        if name == "checkpoint":
+            command.add_argument("--manifest", required=True, help="JSON with stage, summary and explicit files; - reads stdin")
         if name == "wait":
             command.add_argument("--after-version", type=int, required=True, help="last observed task_version")
             command.add_argument("--wait-seconds", type=float, default=50.0,
@@ -141,6 +147,8 @@ def parse_args() -> argparse.Namespace:
             command.add_argument("--arguments-file", required=True,
                                  help="MCP arguments JSON, including request wrapper when required; - reads stdin")
     args = parser.parse_args()
+    if args.command == "host" and args.host_command in ("bind-output", "checkpoint") and args.legacy_runner:
+        parser.error("Output bindings/checkpoints use the public task; --legacy-runner is unsupported")
     if args.command == "host" and args.host_command == "wait":
         if args.legacy_runner:
             parser.error("host wait uses the public task-change tool; --legacy-runner is unsupported")

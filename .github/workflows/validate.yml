@@ -20,8 +20,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install image and DOCX test dependencies
-        run: python -m pip install pillow lxml
+      - name: Install image, DOCX and application contract test dependencies
+        run: python -m pip install pillow lxml jsonschema
       - name: Run script tests
         run: python -m unittest discover -s tests
 

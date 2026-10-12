@@ -4,8 +4,8 @@ import contextlib
 import importlib.util
 import io
 import json
-from pathlib import Path
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 
 CLIENT_PATH = Path(__file__).resolve().parents[1] / "src/scripts/paperspine_public_client.py"
