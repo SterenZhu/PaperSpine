@@ -286,7 +286,10 @@ def web_launch(args: argparse.Namespace, root: Path) -> int:
     """Start/reuse the same public facade; no Agent, task creation or migration."""
     profile = selected_profile(args) or Path.home() / '.paperspine5/profiles/default'
     profile = profile.resolve()
-    if profile == root or root in profile.parents or profile in root.parents:
+    # The official installer places the active suite under
+    # <profile>/.paperspine5-lifecycle/installs/; only a profile inside the
+    # product files is a conflict.
+    if profile == root or root in profile.parents:
         raise ValueError('Keep the local profile separate from installed product files')
     configs = [profile / 'data/product-config.json', profile / 'product-config.json']
     config = next((p for p in configs if p.is_file()), None)
