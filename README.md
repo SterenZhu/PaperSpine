@@ -28,12 +28,10 @@ PaperSpine5 是一个覆盖论文全流程的 AI Skill。你提供研究方向�
 第三项的命令、JSON 清单及恢复方式见
 [工作流说明](src/skill/references/product-v1-workflow.md#external-writing-directories-and-one-command-checkpoints)。
 每个实际工作段完成、恢复会话和最终回复前，Claude 应按 Skill 要求同步成果与进度。
-修复使用独立测试材料和任务验证，不需要重新登记原论文的 55 个材料文件。
 
 ### 自用版本与后续更新
 
-这些修复已进入 fork 源码和 Claude Skill 分发文件。已安装的 Skill 与其 Web 核心仍需一起更新，
-才能使用全部修复；仅拉取仓库不会更新本机安装。当前下载链接和默认更新清单仍指向官方套件，
+这些修复已进入 fork 源码和 Claude Skill 分发文件。当前下载链接和默认更新清单仍指向官方套件，
 它们不包含本 fork 的自用改动，后续官方自动更新也可能覆盖本地修复。
 
 后续维护应合并上游更新、运行相关回归测试，并构建包含修复的自用完整套件。
