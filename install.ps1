@@ -11,9 +11,9 @@
   [string]$LegacyArchiveRoot = (Join-Path $env:USERPROFILE ".paperspine5\legacy-migrations")
 )
 $ErrorActionPreference = "Stop"
-$Version = "0.4.0-alpha.3"
-$ManifestUrl = "https://raw.githubusercontent.com/WUBING2023/PaperSpine/main/website/downloads/manifest.json"
-$MirrorManifestUrl = "https://wubing2023.github.io/PaperSpine/v5/downloads/manifest.json"
+$Version = "0.4.0-alpha.3-fork.1"
+$ManifestUrl = "https://raw.githubusercontent.com/SterenZhu/PaperSpine/main/website/downloads/manifest.json"
+$MirrorManifestUrl = "https://github.com/SterenZhu/PaperSpine/releases/download/v0.4.0-alpha.3-fork.1/manifest.json"
 
 # GitHub only speaks TLS 1.2 and newer. Windows PowerShell 5.1 on older Windows
 # builds still offers SSL3/TLS1.0 by default, and the handshake then dies with
@@ -43,7 +43,7 @@ $artifact = $suiteCandidates[0]
 $availableBuild = [string]$artifact.build_id
 if ($availableBuild -notmatch '^[A-Za-z0-9][A-Za-z0-9._-]*$' -or [string]$manifest.version -notmatch '^[A-Za-z0-9][A-Za-z0-9._-]*$' -or
     [string]$artifact.file -notmatch '^[A-Za-z0-9][A-Za-z0-9._-]*\.zip$' -or [string]$artifact.sha256 -notmatch '^[a-fA-F0-9]{64}$' -or
-    [string]$artifact.bytes -notmatch '^[1-9][0-9]*$' -or [string]$artifact.download_url -notmatch '^https://github\.com/WUBING2023/PaperSpine/releases/download/[A-Za-z0-9._-]+/[A-Za-z0-9._-]+\.zip$') {
+    [string]$artifact.bytes -notmatch '^[1-9][0-9]*$' -or [string]$artifact.download_url -notmatch '^https://github\.com/SterenZhu/PaperSpine/releases/download/[A-Za-z0-9._-]+/[A-Za-z0-9._-]+\.zip$') {
   throw "The selected suite metadata is invalid; no package will be guessed or installed."
 }
 if (($artifact.download_url -split "/")[-1] -ne $artifact.file) { throw "The artifact URL does not match its filename." }

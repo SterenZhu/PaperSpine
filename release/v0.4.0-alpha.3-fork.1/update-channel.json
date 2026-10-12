@@ -1,0 +1,23 @@
+{
+  "protocol": "paperspine-updater/1",
+  "product": "paperspine",
+  "product_version": "0.4.0-alpha.3-fork.1",
+  "bundle": {
+    "sha256": "8fb078879a76bdc7b6c20fdb5aa60c358235d2b811d15022dbb3083d84c90a3a",
+    "bytes": 26472671,
+    "platform": "windows-amd64",
+    "build_id": "w7a-c01916d42bd7cccb5491",
+    "url": "https://github.com/SterenZhu/PaperSpine/releases/download/v0.4.0-alpha.3-fork.1/paperspine5-suite-0.4.0-alpha.3-fork.1-windows-amd64.zip",
+    "product_version": "0.4.0-alpha.3-fork.1"
+  },
+  "bundles": {
+    "windows-amd64": {
+      "sha256": "8fb078879a76bdc7b6c20fdb5aa60c358235d2b811d15022dbb3083d84c90a3a",
+      "bytes": 26472671,
+      "platform": "windows-amd64",
+      "build_id": "w7a-c01916d42bd7cccb5491",
+      "url": "https://github.com/SterenZhu/PaperSpine/releases/download/v0.4.0-alpha.3-fork.1/paperspine5-suite-0.4.0-alpha.3-fork.1-windows-amd64.zip",
+      "product_version": "0.4.0-alpha.3-fork.1"
+    }
+  }
+}

@@ -3,17 +3,17 @@
   "product": {
     "name": "PaperSpine5",
     "slug": "paperspine5",
-    "version": "0.4.0-alpha.3",
+    "version": "0.4.0-alpha.3-fork.1",
     "channel": "prerelease",
     "license": "MIT"
   },
   "github": {
-    "owner": "WUBING2023",
+    "owner": "SterenZhu",
     "repository": "PaperSpine",
     "communityRepository": null
   },
   "build": {
-    "installCommand": "Windows: install.ps1 -Target codex; macOS/Linux: install.sh --target codex",
+    "installCommand": "Windows: install.ps1 -Target claude-code",
     "verifyCommands": [
       "python paperspine5/release_tools/verify_release.py",
       "python -m unittest discover -s tests -p test_atlas_pipeline.py"

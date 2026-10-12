@@ -164,7 +164,7 @@ class UpdatePreflightTests(unittest.TestCase):
         with self.assertRaisesRegex(wrapper.UpdateError, "no blind apply"):
             wrapper._load_stable_updater(old)
 
-    def test_source_defaults_to_official_channel_without_saved_channel(self):
+    def test_source_defaults_to_fork_channel_without_saved_channel(self):
         settings = wrapper.read_json(self.control / "settings.json")
         settings["channel"] = None
         wrapper.write_json(self.control / "settings.json", settings)
@@ -174,7 +174,7 @@ class UpdatePreflightTests(unittest.TestCase):
         with mock.patch.object(wrapper, "_load_stable_updater", return_value=module):
             self.run_quietly()
         module.check.assert_called_once_with(wrapper.DEFAULT_STABLE_CHANNEL, skill_root=self.skill, control_root=self.control)
-        self.assertEqual(wrapper.DEFAULT_STABLE_CHANNEL, "https://raw.githubusercontent.com/WUBING2023/PaperSpine/main/website/downloads/update-channel.json")
+        self.assertEqual(wrapper.DEFAULT_STABLE_CHANNEL, "https://raw.githubusercontent.com/SterenZhu/PaperSpine/main/website/downloads/update-channel.json")
 
     def test_standalone_preflight_keeps_legacy_channel_and_does_not_migrate(self):
         self.pointer.unlink()

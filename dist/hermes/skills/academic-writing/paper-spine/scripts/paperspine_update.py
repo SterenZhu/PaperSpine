@@ -24,13 +24,13 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 
 DEFAULT_MANIFEST_URL = (
-    "https://raw.githubusercontent.com/WUBING2023/PaperSpine/main/dist/paperspine_version.json"
+    "https://raw.githubusercontent.com/SterenZhu/PaperSpine/main/dist/paperspine_version.json"
 )
 DEFAULT_STABLE_CHANNEL = (
-    "https://raw.githubusercontent.com/WUBING2023/PaperSpine/main/website/downloads/update-channel.json"
+    "https://raw.githubusercontent.com/SterenZhu/PaperSpine/main/website/downloads/update-channel.json"
 )
 # Stage 5a: archive_url points to a fixed tag so users never pull in-flight main.
-DEFAULT_ARCHIVE_URL = "https://github.com/WUBING2023/PaperSpine/archive/refs/tags/v4.0.0.zip"
+DEFAULT_ARCHIVE_URL = "https://github.com/SterenZhu/PaperSpine/archive/refs/tags/v0.4.0-alpha.3-fork.1.zip"
 CONFIG_HOME_ENV = "PAPERSPINE_CONFIG_HOME"
 VERSION_FILE = "paperspine_version.json"
 INSTALL_STATE_FILE = "install_state.json"
@@ -108,7 +108,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--control-root", type=Path, default=None,
                         help="Stable updater control directory; reuses this suite's existing control when possible.")
     parser.add_argument("--source", default=None,
-                        help="Stable update channel for --preflight; defaults to the saved channel or official channel.")
+                        help="Stable update channel for --preflight; defaults to the saved channel or fork channel.")
     args = parser.parse_args()
     if args.preflight and (args.auto or args.enable_auto_update or args.disable_auto_update or args.auto_status):
         parser.error("--preflight cannot be combined with legacy automatic-update policy commands.")

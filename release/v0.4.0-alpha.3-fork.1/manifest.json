@@ -1,0 +1,64 @@
+{
+  "schema_version": "1.2",
+  "product": "PaperSpine5",
+  "version": "0.4.0-alpha.3-fork.1",
+  "channel": "prerelease",
+  "build_id": "w7a-c01916d42bd7cccb5491",
+  "release_state": "published",
+  "published": true,
+  "repository": "https://github.com/SterenZhu/PaperSpine",
+  "tag": "v0.4.0-alpha.3-fork.1",
+  "release_url": "https://github.com/SterenZhu/PaperSpine/releases/tag/v0.4.0-alpha.3-fork.1",
+  "license": "MIT",
+  "artifacts": [
+    {
+      "kind": "suite",
+      "file": "paperspine5-suite-0.4.0-alpha.3-fork.1-windows-amd64.zip",
+      "bytes": 26472671,
+      "sha256": "8fb078879a76bdc7b6c20fdb5aa60c358235d2b811d15022dbb3083d84c90a3a",
+      "download_url": "https://github.com/SterenZhu/PaperSpine/releases/download/v0.4.0-alpha.3-fork.1/paperspine5-suite-0.4.0-alpha.3-fork.1-windows-amd64.zip",
+      "description": "Windows x64 完整套件：Claude Skill、Web 核心、运行时及三个自用修复。",
+      "install_command": "powershell -ExecutionPolicy Bypass -File .\\install.ps1 -Target claude-code",
+      "platform": "windows-amd64",
+      "build_id": "w7a-c01916d42bd7cccb5491"
+    }
+  ],
+  "release_assets": {
+    "manifest_url": "https://github.com/SterenZhu/PaperSpine/releases/download/v0.4.0-alpha.3-fork.1/manifest.json",
+    "checksums_url": "https://github.com/SterenZhu/PaperSpine/releases/download/v0.4.0-alpha.3-fork.1/checksums.sha256",
+    "installer_url": "https://github.com/SterenZhu/PaperSpine/releases/download/v0.4.0-alpha.3-fork.1/install.ps1",
+    "installer_bytes": 12471,
+    "installer_sha256": "bca6749895bea6df1164fcf5a7586ebe550fca904eb0cd283e1c590a230c5904"
+  },
+  "installation": {
+    "canonical_skill": "paper-spine",
+    "known_legacy_names": [
+      "PaperSpine",
+      "PaperSpineV2",
+      "paperFig",
+      "paperspine5-workspace",
+      "paper-spine-research",
+      "paper-spine-citation",
+      "paper-spine-rewrite",
+      "paper-spine-build",
+      "paper-spine-latex",
+      "paper-spine-audit",
+      "paper-spine-translate",
+      "paper-spine-humanize",
+      "paper-spine-update"
+    ],
+    "legacy_action": "archive_to_user_paperspine5_backups",
+    "task_data_preserved": true,
+    "unknown_paths": "never_guess_or_delete"
+  },
+  "limitations": [
+    "This fork release supports Windows x64 only.",
+    "No independent cryptographic signature."
+  ],
+  "update": {
+    "check_command": "python scripts/paperspine_update.py --preflight --check-only",
+    "apply_command": "python scripts/paperspine_update.py --preflight --yes",
+    "policy": "Follow fork releases; retain task data and explicit opt-out.",
+    "channel_url": "https://raw.githubusercontent.com/SterenZhu/PaperSpine/main/website/downloads/update-channel.json"
+  }
+}

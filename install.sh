@@ -3,8 +3,8 @@ set -eu
 
 VERSION="0.4.0-alpha.3"
 MANIFEST_PATH=""
-MANIFEST_URL="https://raw.githubusercontent.com/WUBING2023/PaperSpine/main/website/downloads/manifest.json"
-MIRROR_MANIFEST_URL="https://wubing2023.github.io/PaperSpine/v5/downloads/manifest.json"
+MANIFEST_URL="https://raw.githubusercontent.com/SterenZhu/PaperSpine/main/website/downloads/manifest.json"
+MIRROR_MANIFEST_URL="https://github.com/SterenZhu/PaperSpine/releases/download/v0.4.0-alpha.3-fork.1/manifest.json"
 TARGET="codex"
 CLEAN_LEGACY=0
 CHECK_ONLY=0
@@ -117,7 +117,7 @@ manifest_fields() {
     gsub(/\\\//,"/",url)
     if(types["root.version"]!="string" || types[selected ".file"]!="string" || types[selected ".bytes"]!="number" || types[selected ".sha256"]!="string" || types[selected ".build_id"]!="string" || types[selected ".download_url"]!="string")fail()
     if(version !~ /^[A-Za-z0-9][A-Za-z0-9._-]*$/ || build !~ /^[A-Za-z0-9][A-Za-z0-9._-]*$/ || file !~ /^[A-Za-z0-9][A-Za-z0-9._-]*\.zip$/ || bytes !~ /^[1-9][0-9]*$/ || length(sha)!=64 || sha ~ /[^a-fA-F0-9]/)fail()
-    if(url !~ /^https:\/\/github\.com\/WUBING2023\/PaperSpine\/releases\/download\/[A-Za-z0-9._-]+\/[A-Za-z0-9._-]+\.zip$/)fail()
+    if(url !~ /^https:\/\/github\.com\/SterenZhu\/PaperSpine\/releases\/download\/[A-Za-z0-9._-]+\/[A-Za-z0-9._-]+\.zip$/)fail()
     parts=split(url,urlparts,"/");if(urlparts[parts]!=file)fail()
     print version;print file;print bytes;print tolower(sha);print build;print url
   }' "$1"

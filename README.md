@@ -6,7 +6,7 @@
 
 [中文](README.md) · [English](README.en.md) · [日本語](README.ja.md) · [한국어](README.ko.md) · [Español](README.es.md) · [Français](README.fr.md) · [Deutsch](README.de.md) · [Русский](README.ru.md) · [Português](README.pt.md)
 
-[产品页](https://wubing2023.github.io/PaperSpine/v5/) · [GitHub Release](https://github.com/WUBING2023/PaperSpine/releases/tag/v0.4.0-alpha.3)
+[上游产品介绍](https://wubing2023.github.io/PaperSpine/v5/) · [GitHub Release](https://github.com/SterenZhu/PaperSpine/releases/tag/v0.4.0-alpha.3-fork.1)
 
 **PaperSpine5：从零开始，快速完成一篇图文完整的论文。**
 
@@ -31,65 +31,37 @@ PaperSpine5 是一个覆盖论文全流程的 AI Skill。你提供研究方向�
 
 ### 自用版本与后续更新
 
-这些修复已进入 fork 源码和 Claude Skill 分发文件。当前下载链接和默认更新清单仍指向官方套件，
-它们不包含本 fork 的自用改动，后续官方自动更新也可能覆盖本地修复。
-
-后续维护应合并上游更新、运行相关回归测试，并构建包含修复的自用完整套件。
-发布自用更新清单后，可用更新器的 `--preflight --source <自用更新清单>` 指向该渠道；
-渠道建立前，按更新器设置明确关闭自动更新。这里记录更新策略，尚未切换本机更新渠道或重装 Skill。
+修复套件版本为 `v0.4.0-alpha.3-fork.1`，安装器、下载清单和默认更新渠道均指向
+本 fork 的 GitHub Release。后续维护时合并上游更新、运行相关回归测试，再构建并发布
+新的 fork 套件，同时更新下载清单和更新渠道。
 
 ## 下载
 
-- Windows x64 套件：约 26.5 MB。
-- Linux glibc x86_64 套件：约 56.2 MB。
-- macOS Apple Silicon 套件：约 40.6 MB。
-- macOS Intel x86_64 套件：约 40.5 MB。
-
-所有下载都列在公开发布清单中，并用 SHA-256 校验。完整版本号为 `v0.4.0-alpha.3` 预发布。
-
-<details>
-<summary>高级 / 手动安装</summary>
-
-当前发布仅提供四个平台的完整套件。历史约 0.70 MB 的 Skill-only ZIP 不含 Web 核心与运行时，不能用于首次安装或修复缺失套件指针。高级用户可从已验证的完整套件管理 Skill。
-
-</details>
+本 fork 当前发布 Windows x64 完整套件，包含 Claude Skill、Web 核心与运行时。
+从 [GitHub Release](https://github.com/SterenZhu/PaperSpine/releases/tag/v0.4.0-alpha.3-fork.1)
+下载 `install.ps1`；安装器会下载套件并校验大小、SHA-256、内部完整性与首次启动。
 
 ## 安装与旧版本迁移
 
-Windows x64：
-
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\install.ps1 -Target codex -CleanLegacy
+powershell -ExecutionPolicy Bypass -File .\install.ps1 -Target claude-code -CleanLegacy
 ```
 
-macOS / Linux：
-
-```sh
-sh ./install.sh --target codex --clean-legacy
-```
-
-`-CleanLegacy` 先只读预览，仅在发现旧版冲突时写归档；不删除论文任务数据、宿主设置或未知文件。两个平台安装器都会校验字节数、SHA-256、套件内部完整性和首次启动自检。
+`-CleanLegacy` 在发现旧版冲突时归档旧 Skill，保留论文任务数据和宿主设置。
 
 ## 检查与应用更新
 
 ```powershell
-# Windows
 powershell -ExecutionPolicy Bypass -File .\install.ps1 -CheckOnly
-powershell -ExecutionPolicy Bypass -File .\install.ps1 -Target codex
+powershell -ExecutionPolicy Bypass -File .\install.ps1 -Target claude-code
 ```
 
-```sh
-# macOS / Linux
-sh ./install.sh --check-only
-sh ./install.sh --target codex
-```
-
-重新运行安装器会检查版本：有新版时执行可回滚更新，保留任务数据并做启动自检；已是最新版且 Skill 完整时直接继续，不重复下载或覆盖。每次调用 Skill 时检查更新，有新版则自动升级完整套件和更新器；尊重明确关闭自动更新的设置。
+有新版时安装器执行可回滚更新并做启动自检；已是最新版且 Skill 完整时直接继续。
+每次调用 Skill 时，更新器检查本 fork 渠道，有新版则更新完整套件；尊重关闭自动更新的设置。
 
 ## 边界
 
-- 四个平台套件均已通过归档和 SHA-256 校验。Windows x64 已通过本地安装、更新和工作台验证；[发版后原生 CI](https://github.com/WUBING2023/PaperSpine/actions/runs/35944185453) 在 Windows、Linux x86_64、macOS arm64 和 macOS x86_64 均通过旧更新器升级与工作台启动。Linux arm64、musl/Alpine 未声明支持。
-- macOS 套件尚未签名或公证，首次运行可能需要用户明确允许。
+- 本 fork 当前支持 Windows x64；其他平台套件尚未发布。
 - 当前为 alpha 预发布，无独立密码学签名。
 - 产品发布不授权投稿、上传私有材料、付款或外部联系。
 - 支持入口是自愿维护支持，不解锁功能，不读取支付状态。
